@@ -1,0 +1,32 @@
+name: Update Market Data
+
+on:
+  schedule:
+    - cron: '0 13 * * 1-5'   # 7am MT (UTC-6) weekdays
+  workflow_dispatch:           # allow manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch BLS and Treasury data
+        run: python fetch_data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "data: update $(date -u +%Y-%m-%d)"
+          git push
