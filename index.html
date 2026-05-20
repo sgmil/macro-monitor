@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Macro Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d0f14; --surface:#161a22; --surface2:#1e2430;
+  --border:rgba(255,255,255,0.07); --text:#e8eaf0; --muted:#6b7280;
+  --green:#4ade80; --blue:#60a5fa; --red:#f87171;
+  --amber:#fbbf24; --purple:#c084fc;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:18px 32px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--green);letter-spacing:0.1em;}
+.header-right{display:flex;align-items:center;gap:16px;}
+#last-updated{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+#data-date{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+.progress-wrap{height:2px;background:var(--surface2);}
+.progress-bar{height:2px;width:0%;background:linear-gradient(90deg,var(--green),var(--blue));transition:width 0.4s ease;}
+
+main{padding:28px 32px;max-width:1320px;margin:0 auto;}
+
+#error-banner{
+  display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);
+  border-radius:8px;padding:12px 16px;margin-bottom:20px;
+  font-size:12px;color:var(--red);font-family:'IBM Plex Mono',monospace;line-height:1.7;
+}
+#stale-banner{
+  display:none;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);
+  border-radius:8px;padding:10px 16px;margin-bottom:20px;
+  font-size:11px;color:var(--amber);font-family:'IBM Plex Mono',monospace;
+}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:16px 18px;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
+.stat-val{font-size:24px;font-weight:300;font-family:'IBM Plex Mono',monospace;line-height:1;transition:color 0.3s;}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:5px;font-family:'IBM Plex Mono',monospace;}
+
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(540px,1fr));gap:16px;margin-bottom:16px;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:20px 22px;}
+.panel.full{grid-column:1/-1;}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:0.09em;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.panel-val{font-family:'IBM Plex Mono',monospace;font-size:18px;}
+.chart-wrap{position:relative;width:100%;height:200px;}
+.chart-wrap.md{height:240px;}
+
+.yield-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.pill{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
+.pill .mat{color:var(--muted);margin-right:6px;}
+
+.source-note{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);}
+.source-note a{color:var(--blue);text-decoration:none;}
+.source-note a:hover{text-decoration:underline;}
+
+@media(max-width:680px){
+  .chart-grid{grid-template-columns:1fr;}
+  header{padding:14px 16px;}
+  main{padding:16px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">MACRO // MONITOR</div>
+  <div class="header-right">
+    <span id="data-date"></span>
+    <span id="last-updated"></span>
+  </div>
+</header>
+<div class="progress-wrap"><div class="progress-bar" id="pbar"></div></div>
+
+<main>
+  <div id="error-banner"></div>
+  <div id="stale-banner"></div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">CPI YoY</div><div class="stat-val" id="s-cpi">—</div><div class="stat-sub" id="s-cpi-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Core CPI</div><div class="stat-val" id="s-core">—</div><div class="stat-sub">ex food &amp; energy</div></div>
+    <div class="stat-card"><div class="stat-label">10-Yr Treasury</div><div class="stat-val" id="s-t10">—</div><div class="stat-sub" id="s-t10-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">2-Yr Treasury</div><div class="stat-val" id="s-t2">—</div><div class="stat-sub" id="s-t2-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">10Y–2Y Spread</div><div class="stat-val" id="s-spread">—</div><div class="stat-sub" id="s-spread-s">yield curve</div></div>
+    <div class="stat-card"><div class="stat-label">Unemployment</div><div class="stat-val" id="s-unr">—</div><div class="stat-sub" id="s-unr-s"> </div></div>
+  </div>
+
+  <div class="panel full" style="margin-bottom:16px;">
+    <div class="panel-head">
+      <div class="panel-title">Treasury Yield Curve — Most Recent</div>
+      <div class="panel-val" id="p-yc-date" style="font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div class="yield-pills" id="yield-pills"></div>
+    <div class="chart-wrap md"><canvas id="ycChart"></canvas></div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">CPI — Year over Year %</div><div class="panel-val" id="p-cpi">—</div></div>
+      <div class="chart-wrap"><canvas id="cpiChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Unemployment Rate</div><div class="panel-val" id="p-unr">—</div></div>
+      <div class="chart-wrap"><canvas id="unrChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">10-Year Treasury Yield (Daily)</div><div class="panel-val" id="p-t10">—</div></div>
+      <div class="chart-wrap"><canvas id="t10Chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">2-Year Treasury Yield (Daily)</div><div class="panel-val" id="p-t2">—</div></div>
+      <div class="chart-wrap"><canvas id="t2Chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel full">
+    <div class="panel-head">
+      <div class="panel-title">10Y – 2Y Spread · Recession Indicator</div>
+      <div class="panel-val" id="p-spread">—</div>
+    </div>
+    <div class="chart-wrap md"><canvas id="spreadChart"></canvas></div>
+  </div>
+
+  <div class="source-note">
+    Data: <a href="https://www.bls.gov" target="_blank">Bureau of Labor Statistics</a> (CPI, Unemployment) ·
+    <a href="https://home.treasury.gov" target="_blank">U.S. Treasury</a> (Yield Curve) ·
+    Refreshed automatically each weekday morning ·
+    <a href="https://github.com/sgmil/macro-monitor/actions" target="_blank">View last run →</a>
+  </div>
+</main>
+
+<script>
+const charts = {};
+const $ = id => document.getElementById(id);
+const setProgress = p => $('pbar').style.width = p + '%';
+
+function showError(html) {
+  const b = $('error-banner'); b.innerHTML = html; b.style.display = 'block';
+}
+
+function makeLine(id, labels, data, color, fill=false) {
+  const ctx = $(id); if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: color, backgroundColor: fill ? color+'18':'transparent', borderWidth:1.8, pointRadius:0, fill, tension:0.3 }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label: c=>' '+c.parsed.y.toFixed(2)+'%' } } },
+      scales: {
+        x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
+        y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+      }
+    }
+  });
+}
+
+function blsToSeries(s) {
+  return s.data.filter(d => d.value !== '-')
+    .map(d => ({ date:`${d.year}-${d.period.replace('M','').padStart(2,'0')}-01`, value:parseFloat(d.value) }))
+    .sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function calcYoY(arr) {
+  const out = [];
+  for (let i = 12; i < arr.length; i++)
+    out.push({ date:arr[i].date, value:parseFloat(((arr[i].value - arr[i-12].value) / arr[i-12].value * 100).toFixed(2)) });
+  return out;
+}
+
+function todayMinus(days) {
+  const d = new Date(); d.setDate(d.getDate()-days); return d.toISOString().split('T')[0];
+}
+
+async function loadAll() {
+  setProgress(10);
+  const errors = [];
+
+  // ── BLS JSON (same-origin, no CORS) ──────────────────────────────────────
+  try {
+    const res = await fetch('data/bls.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.data || json.data.status !== 'REQUEST_SUCCEEDED')
+      throw new Error('Data not yet populated — trigger the GitHub Action manually (see README)');
+
+    setProgress(40);
+
+    // Show data freshness
+    if (json.updated) {
+      const age = Math.floor((Date.now() - new Date(json.updated)) / 86400000);
+      $('data-date').textContent = `data: ${json.updated.slice(0,10)}`;
+      if (age > 3) {
+        $('stale-banner').textContent = `⚠ Data is ${age} days old — check GitHub Actions for errors`;
+        $('stale-banner').style.display = 'block';
+      }
+    }
+
+    const series = json.data.Results.series;
+    const cpiRaw  = blsToSeries(series.find(s => s.seriesID === 'CUUR0000SA0'));
+    const coreRaw = blsToSeries(series.find(s => s.seriesID === 'CUUR0000SA0L1E'));
+    const unrRaw  = blsToSeries(series.find(s => s.seriesID === 'LNS14000000'));
+
+    const cpiYoY  = calcYoY(cpiRaw);
+    const coreYoY = calcYoY(coreRaw);
+
+    const lastCpi  = cpiYoY[cpiYoY.length-1];
+    const prevCpi  = cpiYoY[cpiYoY.length-2];
+    const lastCore = coreYoY[coreYoY.length-1];
+    const lastUnr  = unrRaw[unrRaw.length-1];
+    const prevUnr  = unrRaw[unrRaw.length-2];
+
+    if (lastCpi) {
+      $('s-cpi').textContent = lastCpi.value.toFixed(1)+'%';
+      $('s-cpi').style.color = lastCpi.value > 3 ? 'var(--red)' : 'var(--green)';
+      if (prevCpi) { const d=(lastCpi.value-prevCpi.value).toFixed(2); $('s-cpi-s').textContent=(d>0?'▲ +':'▼ ')+d+' from prev'; }
+      $('p-cpi').textContent = lastCpi.value.toFixed(2)+'%';
+    }
+    if (lastCore) $('s-core').textContent = lastCore.value.toFixed(1)+'%';
+    if (lastUnr) {
+      $('s-unr').textContent = lastUnr.value.toFixed(1)+'%';
+      if (prevUnr) $('s-unr-s').textContent = (lastUnr.value>prevUnr.value?'▲':'▼')+' from '+prevUnr.value.toFixed(1)+'%';
+      $('p-unr').textContent = lastUnr.value.toFixed(1)+'%';
+    }
+
+    const cutoff = todayMinus(400);
+    makeLine('cpiChart', cpiYoY.filter(d=>d.date>=cutoff).map(d=>d.date.slice(0,7)), cpiYoY.filter(d=>d.date>=cutoff).map(d=>d.value), '#f87171', true);
+    makeLine('unrChart', unrRaw.filter(d=>d.date>=cutoff).map(d=>d.date.slice(0,7)), unrRaw.filter(d=>d.date>=cutoff).map(d=>d.value), '#fbbf24', true);
+
+  } catch(e) {
+    errors.push('<b>BLS (CPI / Unemployment):</b> ' + e.message);
+    console.error(e);
+  }
+
+  setProgress(60);
+
+  // ── Treasury JSON (same-origin) ───────────────────────────────────────────
+  try {
+    const res = await fetch('data/treasury.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.rows || json.rows.length === 0)
+      throw new Error('Treasury data not yet populated — trigger the GitHub Action manually (see README)');
+
+    setProgress(85);
+
+    const allRows = json.rows;
+    const latest  = allRows[allRows.length-1];
+
+    if (latest) {
+      $('p-yc-date').textContent = latest.date;
+
+      const mats = [
+        {label:'1M',val:latest.bc_1month},{label:'3M',val:latest.bc_3month},
+        {label:'6M',val:latest.bc_6month},{label:'1Y',val:latest.bc_1year},
+        {label:'2Y',val:latest.bc_2year},{label:'3Y',val:latest.bc_3year},
+        {label:'5Y',val:latest.bc_5year},{label:'7Y',val:latest.bc_7year},
+        {label:'10Y',val:latest.bc_10year},{label:'20Y',val:latest.bc_20year},
+        {label:'30Y',val:latest.bc_30year}
+      ].filter(m => m.val !== null && !isNaN(m.val));
+
+      $('yield-pills').innerHTML = mats.map(m =>
+        `<div class="pill"><span class="mat">${m.label}</span>${m.val.toFixed(2)}%</div>`
+      ).join('');
+
+      if (charts['ycChart']) charts['ycChart'].destroy();
+      charts['ycChart'] = new Chart($('ycChart'), {
+        type:'line',
+        data:{ labels:mats.map(m=>m.label), datasets:[{ data:mats.map(m=>m.val), borderColor:'#60a5fa', backgroundColor:'#60a5fa12', borderWidth:2, pointRadius:5, pointBackgroundColor:'#60a5fa', fill:true, tension:0.3 }] },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label:c=>' '+c.parsed.y.toFixed(2)+'%' } } },
+          scales:{
+            x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:11}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
+            y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+          }
+        }
+      });
+
+      const t10=latest.bc_10year, t2=latest.bc_2year;
+      if (t10!=null){ $('s-t10').textContent=t10.toFixed(2)+'%'; $('p-t10').textContent=t10.toFixed(2)+'%'; }
+      if (t2!=null) { $('s-t2').textContent=t2.toFixed(2)+'%';   $('p-t2').textContent=t2.toFixed(2)+'%'; }
+      if (t10!=null&&t2!=null){
+        const sp=parseFloat((t10-t2).toFixed(2));
+        $('s-spread').textContent=(sp>=0?'+':'')+sp+'%';
+        $('s-spread').style.color=sp<0?'var(--red)':'var(--green)';
+        $('s-spread-s').textContent=sp<0?'⚠ inverted':'normal';
+        $('p-spread').textContent=(sp>=0?'+':'')+sp+'%';
+      }
+    }
+
+    const cutoff = todayMinus(400);
+    const recent = allRows.filter(r=>r.date>=cutoff);
+    const thin   = recent.filter((_,i)=>i%3===0||i===recent.length-1);
+
+    makeLine('t10Chart', thin.map(r=>r.date.slice(5)), thin.map(r=>r.bc_10year), '#60a5fa');
+    makeLine('t2Chart',  thin.map(r=>r.date.slice(5)), thin.map(r=>r.bc_2year),  '#c084fc');
+
+    const spreadVals = thin.map(r => r.bc_10year!=null&&r.bc_2year!=null ? parseFloat((r.bc_10year-r.bc_2year).toFixed(2)) : null);
+    if (charts['spreadChart']) charts['spreadChart'].destroy();
+    charts['spreadChart'] = new Chart($('spreadChart'), {
+      type:'bar',
+      data:{ labels:thin.map(r=>r.date.slice(5)), datasets:[{ data:spreadVals, backgroundColor:spreadVals.map(v=>v!=null&&v<0?'#f87171':'#4ade80'), borderWidth:0, borderRadius:1 }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
+        scales:{
+          x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{display:false}, border:{color:'rgba(255,255,255,0.06)'} },
+          y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+        }
+      }
+    });
+
+  } catch(e) {
+    errors.push('<b>Treasury Yield Curve:</b> ' + e.message);
+    console.error(e);
+  }
+
+  setProgress(100);
+  setTimeout(() => setProgress(0), 800);
+
+  if (errors.length) showError(errors.join('<br>'));
+  $('last-updated').textContent = 'loaded ' + new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+}
+
+window.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>
