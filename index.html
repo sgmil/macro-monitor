@@ -9,7 +9,7 @@
 <style>
 :root {
   --bg:#0d0f14; --surface:#161a22; --surface2:#1e2430;
-  --border:rgba(255,255,255,0.07); --text:#e8eaf0; --muted:#6b7280;
+  --border:rgba(255,255,255,0.07); --text:#e8eaf0; --muted:#4ade80;
   --green:#4ade80; --blue:#60a5fa; --red:#f87171;
   --amber:#fbbf24; --purple:#c084fc;
 }
@@ -94,6 +94,17 @@ main{padding:28px 32px;max-width:1320px;margin:0 auto;}
     <div class="stat-card"><div class="stat-label">2-Yr Treasury</div><div class="stat-val" id="s-t2">—</div><div class="stat-sub" id="s-t2-s"> </div></div>
     <div class="stat-card"><div class="stat-label">10Y–2Y Spread</div><div class="stat-val" id="s-spread">—</div><div class="stat-sub" id="s-spread-s">yield curve</div></div>
     <div class="stat-card"><div class="stat-label">Unemployment</div><div class="stat-val" id="s-unr">—</div><div class="stat-sub" id="s-unr-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">M2 Money Supply</div><div class="stat-val" id="s-m2">—</div><div class="stat-sub" id="s-m2-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Fed Funds Rate</div><div class="stat-val" id="s-ffr">—</div><div class="stat-sub" id="s-ffr-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Brent Crude</div><div class="stat-val" id="s-brent">—</div><div class="stat-sub" id="s-brent-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Spot Gold</div><div class="stat-val" id="s-gold">—</div><div class="stat-sub" id="s-gold-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Spot Silver</div><div class="stat-val" id="s-silver">—</div><div class="stat-sub" id="s-silver-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">S&amp;P 500</div><div class="stat-val" id="s-sp500">—</div><div class="stat-sub" id="s-sp500-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Russell 2000</div><div class="stat-val" id="s-rut">—</div><div class="stat-sub" id="s-rut-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">HY OAS</div><div class="stat-val" id="s-oas">—</div><div class="stat-sub" id="s-oas-s">bps</div></div>
+    <div class="stat-card"><div class="stat-label">DXY</div><div class="stat-val" id="s-dxy">—</div><div class="stat-sub" id="s-dxy-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">VIX</div><div class="stat-val" id="s-vix">—</div><div class="stat-sub" id="s-vix-s"> </div></div>
+    <div class="stat-card"><div class="stat-label">Buffett Indicator</div><div class="stat-val" id="s-buffett">—</div><div class="stat-sub">mkt cap / GDP</div></div>
   </div>
 
   <div class="panel full" style="margin-bottom:16px;">
@@ -122,6 +133,18 @@ main{padding:28px 32px;max-width:1320px;margin:0 auto;}
       <div class="panel-head"><div class="panel-title">2-Year Treasury Yield (Daily)</div><div class="panel-val" id="p-t2">—</div></div>
       <div class="chart-wrap"><canvas id="t2Chart"></canvas></div>
     </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">M2 Money Supply (Trillions USD)</div><div class="panel-val" id="p-m2">—</div></div>
+      <div class="chart-wrap"><canvas id="m2Chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Fed Funds Rate</div><div class="panel-val" id="p-ffr">—</div></div>
+      <div class="chart-wrap"><canvas id="ffrChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Brent Crude (USD/bbl)</div><div class="panel-val" id="p-brent">—</div></div>
+      <div class="chart-wrap"><canvas id="brentChart"></canvas></div>
+    </div>
   </div>
 
   <div class="panel full">
@@ -132,9 +155,64 @@ main{padding:28px 32px;max-width:1320px;margin:0 auto;}
     <div class="chart-wrap md"><canvas id="spreadChart"></canvas></div>
   </div>
 
+  <div class="chart-grid" style="margin-top:16px;">
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">HY OAS (bps)</div><div class="panel-val" id="p-oas">—</div></div>
+      <div class="chart-wrap"><canvas id="oasChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">VIX — 1 Year</div><div class="panel-val" id="p-vix">—</div></div>
+      <div class="chart-wrap"><canvas id="vixChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">DXY — 1 Year</div><div class="panel-val" id="p-dxy">—</div></div>
+      <div class="chart-wrap"><canvas id="dxyChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">Buffett Indicator (Mkt Cap / GDP %)</div><div class="panel-val" id="p-buffett">—</div></div>
+      <div class="chart-wrap"><canvas id="buffettChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid" style="margin-top:16px;">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Spot Gold — 1 Year (USD/oz)</div>
+        <div class="panel-val" id="p-gold">—</div>
+      </div>
+      <div class="chart-wrap md"><canvas id="goldChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Spot Silver — 1 Year (USD/oz)</div>
+        <div class="panel-val" id="p-silver">—</div>
+      </div>
+      <div class="chart-wrap md"><canvas id="silverChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-grid" style="margin-top:16px;">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">S&amp;P 500 — 1 Year</div>
+        <div class="panel-val" id="p-sp500">—</div>
+      </div>
+      <div class="chart-wrap md"><canvas id="sp500Chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Russell 2000 — 1 Year</div>
+        <div class="panel-val" id="p-rut">—</div>
+      </div>
+      <div class="chart-wrap md"><canvas id="rutChart"></canvas></div>
+    </div>
+  </div>
+
   <div class="source-note">
     Data: <a href="https://www.bls.gov" target="_blank">Bureau of Labor Statistics</a> (CPI, Unemployment) ·
     <a href="https://home.treasury.gov" target="_blank">U.S. Treasury</a> (Yield Curve) ·
+    <a href="https://fred.stlouisfed.org/series/M2SL" target="_blank">FRED</a> (M2, Fed Funds, HY OAS, Buffett Indicator) ·
+    Yahoo Finance (Brent Crude, Gold, Silver, S&amp;P 500, Russell 2000) ·
     Refreshed automatically each weekday morning ·
     <a href="https://github.com/sgmil/macro-monitor/actions" target="_blank">View last run →</a>
   </div>
@@ -149,7 +227,7 @@ function showError(html) {
   const b = $('error-banner'); b.innerHTML = html; b.style.display = 'block';
 }
 
-function makeLine(id, labels, data, color, fill=false) {
+function makeLine(id, labels, data, color, fill=false, fmt=v=>' '+v.toFixed(2)+'%') {
   const ctx = $(id); if (!ctx) return;
   if (charts[id]) charts[id].destroy();
   charts[id] = new Chart(ctx, {
@@ -157,10 +235,10 @@ function makeLine(id, labels, data, color, fill=false) {
     data: { labels, datasets: [{ data, borderColor: color, backgroundColor: fill ? color+'18':'transparent', borderWidth:1.8, pointRadius:0, fill, tension:0.3 }] },
     options: {
       responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label: c=>' '+c.parsed.y.toFixed(2)+'%' } } },
+      plugins: { legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label: c=>fmt(c.parsed.y) } } },
       scales: {
-        x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
-        y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+        x:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
+        y:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:9}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
       }
     }
   });
@@ -284,8 +362,8 @@ async function loadAll() {
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label:c=>' '+c.parsed.y.toFixed(2)+'%' } } },
           scales:{
-            x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:11}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
-            y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+            x:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:11}}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} },
+            y:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
           }
         }
       });
@@ -318,14 +396,256 @@ async function loadAll() {
         responsive:true, maintainAspectRatio:false,
         plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e2430', borderColor:'rgba(255,255,255,0.1)', borderWidth:1, titleColor:'#9ca3af', bodyColor:'#e8eaf0', callbacks:{ label:c=>' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%' } } },
         scales:{
-          x:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{display:false}, border:{color:'rgba(255,255,255,0.06)'} },
-          y:{ ticks:{color:'#6b7280',font:{family:'IBM Plex Mono',size:9},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
+          x:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:9},maxTicksLimit:8}, grid:{display:false}, border:{color:'rgba(255,255,255,0.06)'} },
+          y:{ ticks:{color:'#4ade80',font:{family:'IBM Plex Mono',size:9},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'%'}, grid:{color:'rgba(255,255,255,0.04)'}, border:{color:'rgba(255,255,255,0.06)'} }
         }
       }
     });
 
   } catch(e) {
     errors.push('<b>Treasury Yield Curve:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── FRED (M2 + Fed Funds Rate) ────────────────────────────────────────────
+  try {
+    const res = await fetch('data/fred.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    // M2
+    if (json.m2 && json.m2.length > 0) {
+      const m2 = json.m2;
+      const latestM2 = m2[m2.length - 1];
+      const latestT = latestM2.value / 1000;
+      $('s-m2').textContent = latestT.toFixed(1) + 'T';
+      $('p-m2').textContent = latestT.toFixed(2) + 'T';
+      if (m2.length >= 13) {
+        const prev = m2[m2.length - 13];
+        const yoy = ((latestM2.value - prev.value) / prev.value * 100).toFixed(1);
+        $('s-m2-s').textContent = (yoy > 0 ? '▲ +' : '▼ ') + yoy + '% YoY';
+      }
+      makeLine('m2Chart', m2.map(d => d.date.slice(0,7)), m2.map(d => +(d.value/1000).toFixed(3)), '#a78bfa', true);
+    }
+
+    // OAS
+    if (json.oas && json.oas.length > 0) {
+      const oas = json.oas;
+      const latestOAS = oas[oas.length - 1];
+      const prevOAS   = oas[oas.length - 2];
+      $('s-oas').textContent = latestOAS.value.toFixed(0);
+      $('p-oas').textContent = latestOAS.value.toFixed(0) + ' bps';
+      if (prevOAS) {
+        const d = (latestOAS.value - prevOAS.value).toFixed(0);
+        $('s-oas-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' bps';
+      }
+      const cutoff = todayMinus(400);
+      const oasSlice = oas.filter(d => d.date >= cutoff);
+      makeLine('oasChart', oasSlice.map(d => d.date.slice(0,7)), oasSlice.map(d => d.value), '#f87171', true, v => ' ' + v.toFixed(0) + ' bps');
+    }
+
+    // Buffett Indicator
+    if (json.buffett && json.buffett.length > 0) {
+      const buf = json.buffett;
+      const latestBuf = buf[buf.length - 1];
+      $('s-buffett').textContent = latestBuf.value.toFixed(0) + '%';
+      $('p-buffett').textContent = latestBuf.value.toFixed(1) + '%';
+      makeLine('buffettChart', buf.map(d => d.date.slice(0,7)), buf.map(d => d.value), '#4ade80', true, v => ' ' + v.toFixed(1) + '%');
+    }
+
+    // Fed Funds Rate
+    if (json.fed_funds && json.fed_funds.length > 0) {
+      const ffr = json.fed_funds;
+      const latestFFR = ffr[ffr.length - 1];
+      const prevFFR   = ffr[ffr.length - 2];
+      $('s-ffr').textContent = latestFFR.value.toFixed(2) + '%';
+      $('p-ffr').textContent = latestFFR.value.toFixed(2) + '%';
+      if (prevFFR) {
+        const d = (latestFFR.value - prevFFR.value).toFixed(2);
+        $('s-ffr-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' from prev';
+      }
+      makeLine('ffrChart', ffr.map(d => d.date.slice(0,7)), ffr.map(d => d.value), '#fbbf24');
+    }
+
+  } catch(e) {
+    errors.push('<b>FRED (M2 / Fed Funds):</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── DXY JSON (same-origin) ───────────────────────────────────────────────
+  try {
+    const res = await fetch('data/dxy.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('DXY data not yet populated — trigger the GitHub Action manually');
+
+    const dxy       = json.prices;
+    const latestDXY = dxy[dxy.length - 1];
+    const prevDXY   = dxy[dxy.length - 2];
+    $('s-dxy').textContent = latestDXY.value.toFixed(2);
+    $('p-dxy').textContent = latestDXY.value.toFixed(2);
+    if (prevDXY) {
+      const d = (latestDXY.value - prevDXY.value).toFixed(2);
+      $('s-dxy-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' prev day';
+    }
+    makeLine('dxyChart', dxy.map(d => d.date.slice(5)), dxy.map(d => d.value), '#38bdf8', false, v => ' ' + v.toFixed(2));
+
+  } catch(e) {
+    errors.push('<b>DXY:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── VIX JSON (same-origin) ───────────────────────────────────────────────
+  try {
+    const res = await fetch('data/vix.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('VIX data not yet populated — trigger the GitHub Action manually');
+
+    const vix       = json.prices;
+    const latestVIX = vix[vix.length - 1];
+    const prevVIX   = vix[vix.length - 2];
+    $('s-vix').textContent = latestVIX.value.toFixed(1);
+    $('p-vix').textContent = latestVIX.value.toFixed(2);
+    if (prevVIX) {
+      const d = (latestVIX.value - prevVIX.value).toFixed(1);
+      $('s-vix-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' prev day';
+    }
+    makeLine('vixChart', vix.map(d => d.date.slice(5)), vix.map(d => d.value), '#f87171', true, v => ' ' + v.toFixed(2));
+
+  } catch(e) {
+    errors.push('<b>VIX:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── Brent Crude JSON (same-origin) ───────────────────────────────────────
+  try {
+    const res = await fetch('data/brent.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('Brent data not yet populated — trigger the GitHub Action manually');
+
+    const brent       = json.prices;
+    const latestBrent = brent[brent.length - 1];
+    const prevBrent   = brent[brent.length - 2];
+    $('s-brent').textContent = '$' + latestBrent.value.toFixed(2);
+    $('p-brent').textContent = '$' + latestBrent.value.toFixed(2) + '/bbl';
+    if (prevBrent) {
+      const d = (latestBrent.value - prevBrent.value).toFixed(2);
+      $('s-brent-s').textContent = (d > 0 ? '▲ +$' : '▼ -$') + Math.abs(d) + ' prev day';
+    }
+    makeLine('brentChart', brent.map(d => d.date.slice(5)), brent.map(d => d.value), '#fb923c', false, v => ' $' + v.toFixed(2));
+
+  } catch(e) {
+    errors.push('<b>Brent Crude:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── Gold JSON (same-origin) ───────────────────────────────────────────────
+  try {
+    const res = await fetch('data/gold.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('Gold data not yet populated — trigger the GitHub Action manually');
+
+    const gold      = json.prices;
+    const latestGold = gold[gold.length - 1];
+    const prevGold   = gold[gold.length - 2];
+    $('s-gold').textContent = '$' + latestGold.value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    $('p-gold').textContent = '$' + latestGold.value.toLocaleString('en-US', {maximumFractionDigits: 0}) + '/oz';
+    if (prevGold) {
+      const d = (latestGold.value - prevGold.value).toFixed(1);
+      $('s-gold-s').textContent = (d > 0 ? '▲ +$' : '▼ -$') + Math.abs(d) + ' prev day';
+    }
+    makeLine('goldChart', gold.map(d => d.date.slice(5)), gold.map(d => d.value), '#facc15', true, v => ' $' + v.toLocaleString('en-US', {maximumFractionDigits: 0}));
+
+  } catch(e) {
+    errors.push('<b>Gold:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── Silver JSON (same-origin) ─────────────────────────────────────────────
+  try {
+    const res = await fetch('data/silver.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('Silver data not yet populated — trigger the GitHub Action manually');
+
+    const silver       = json.prices;
+    const latestSilver = silver[silver.length - 1];
+    const prevSilver   = silver[silver.length - 2];
+    $('s-silver').textContent = '$' + latestSilver.value.toFixed(2);
+    $('p-silver').textContent = '$' + latestSilver.value.toFixed(2) + '/oz';
+    if (prevSilver) {
+      const d = (latestSilver.value - prevSilver.value).toFixed(2);
+      $('s-silver-s').textContent = (d > 0 ? '▲ +$' : '▼ -$') + Math.abs(d) + ' prev day';
+    }
+    makeLine('silverChart', silver.map(d => d.date.slice(5)), silver.map(d => d.value), '#94a3b8', true, v => ' $' + v.toFixed(2));
+
+  } catch(e) {
+    errors.push('<b>Silver:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── S&P 500 JSON (same-origin) ────────────────────────────────────────────
+  try {
+    const res = await fetch('data/sp500.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('S&P 500 data not yet populated — trigger the GitHub Action manually');
+
+    const sp500      = json.prices;
+    const latestSP   = sp500[sp500.length - 1];
+    const prevSP     = sp500[sp500.length - 2];
+    $('s-sp500').textContent = latestSP.value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    $('p-sp500').textContent = latestSP.value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    if (prevSP) {
+      const d = (latestSP.value - prevSP.value).toFixed(1);
+      const pct = ((latestSP.value - prevSP.value) / prevSP.value * 100).toFixed(2);
+      $('s-sp500-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' (' + pct + '%)';
+    }
+    makeLine('sp500Chart', sp500.map(d => d.date.slice(5)), sp500.map(d => d.value), '#60a5fa', true, v => ' ' + v.toLocaleString('en-US', {maximumFractionDigits: 0}));
+
+  } catch(e) {
+    errors.push('<b>S&P 500:</b> ' + e.message);
+    console.error(e);
+  }
+
+  // ── Russell 2000 JSON (same-origin) ──────────────────────────────────────
+  try {
+    const res = await fetch('data/rut.json?_=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    if (!json.prices || json.prices.length === 0)
+      throw new Error('Russell 2000 data not yet populated — trigger the GitHub Action manually');
+
+    const rut       = json.prices;
+    const latestRUT = rut[rut.length - 1];
+    const prevRUT   = rut[rut.length - 2];
+    $('s-rut').textContent = latestRUT.value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    $('p-rut').textContent = latestRUT.value.toLocaleString('en-US', {maximumFractionDigits: 0});
+    if (prevRUT) {
+      const d   = (latestRUT.value - prevRUT.value).toFixed(1);
+      const pct = ((latestRUT.value - prevRUT.value) / prevRUT.value * 100).toFixed(2);
+      $('s-rut-s').textContent = (d > 0 ? '▲ +' : '▼ ') + d + ' (' + pct + '%)';
+    }
+    makeLine('rutChart', rut.map(d => d.date.slice(5)), rut.map(d => d.value), '#c084fc', true, v => ' ' + v.toLocaleString('en-US', {maximumFractionDigits: 0}));
+
+  } catch(e) {
+    errors.push('<b>Russell 2000:</b> ' + e.message);
     console.error(e);
   }
 

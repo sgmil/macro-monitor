@@ -43,7 +43,16 @@ Commit directly to `main`.
 
 Your site will be live at **https://sgmil.github.io/macro-monitor** within a minute or two.
 
-### 4. Trigger the first data fetch
+### 4. Add the FRED API key secret
+
+M2 money supply data comes from FRED (St. Louis Fed). Get a free API key at https://fred.stlouisfed.org/docs/api/api_key.html, then add it to your repo:
+
+1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret**
+3. Name: `FRED_API_KEY`, Value: your key
+4. Click **Add secret**
+
+### 5. Trigger the first data fetch
 
 The Action runs automatically at 7am MT on weekdays. To get data immediately:
 
@@ -78,7 +87,7 @@ Your browser
 → Trigger the Action manually (Step 4 above)
 
 **Action fails**
-→ Go to Actions tab, click the failed run, read the log — BLS and Treasury occasionally have brief outages
+→ Go to Actions tab, click the failed run, read the log — BLS, Treasury, and FRED occasionally have brief outages
 
 **Data is stale**
 → The dashboard shows a warning if data is more than 3 days old

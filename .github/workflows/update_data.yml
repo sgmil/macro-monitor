@@ -20,7 +20,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Fetch BLS and Treasury data
+      - name: Fetch BLS, Treasury, and FRED data
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: python fetch_data.py
 
       - name: Commit updated data
