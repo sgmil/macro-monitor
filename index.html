@@ -430,7 +430,7 @@ async function loadAll() {
 
     // OAS
     if (json.oas && json.oas.length > 0) {
-      const oas = json.oas;
+      const oas = json.oas.map(d => ({ date: d.date, value: d.value * 100 })); // % → bps
       const latestOAS = oas[oas.length - 1];
       const prevOAS   = oas[oas.length - 2];
       $('s-oas').textContent = latestOAS.value.toFixed(0);
