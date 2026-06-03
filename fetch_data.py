@@ -7,6 +7,7 @@ writes to data/bls.json, data/treasury.json, and data/fred.json.
 
 import json
 import os
+import time
 import urllib.request
 import urllib.error
 import sys
@@ -144,12 +145,19 @@ def fetch_fred_series(series_id, start="2015-01-01"):
         f"&observation_start={start}"
     )
     req = urllib.request.Request(url, headers={"User-Agent": "MacroMonitor/1.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            data = json.loads(r.read())
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"HTTP {e.code} from FRED ({series_id}): {body[:300]}") from None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=20) as r:
+                data = json.loads(r.read())
+            break
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < 3:
+                delay = 2 ** attempt * 5  # 5, 10, 20 seconds
+                log(f"  FRED rate-limited ({series_id}), retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                body = e.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"HTTP {e.code} from FRED ({series_id}): {body[:300]}") from None
     obs = [
         {"date": o["date"], "value": float(o["value"])}
         for o in data["observations"]
