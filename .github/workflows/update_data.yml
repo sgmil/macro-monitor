@@ -2,7 +2,7 @@ name: Update Market Data
 
 on:
   schedule:
-    - cron: '0 13 * * 1-5'   # 7am MT (UTC-6) weekdays
+    - cron: '0 11,23 * * 1-5'   # 5am and 5pm MT (UTC-6) weekdays MT (UTC-6) weekdays
   workflow_dispatch:           # allow manual trigger from GitHub UI
 
 permissions:
